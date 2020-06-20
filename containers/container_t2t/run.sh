@@ -1,16 +1,27 @@
 #!/bin/bash
 
-mkdir -p /opt/results
+INPUT_FILE="/tmp/data/input.txt"
+OUTPUT_DIR="/opt/results"
+OUTPUT_FILE="/opt/results/output.txt"
+TMP_FILE="input_wo_spaces.txt"
+DATA_DIR="/root/data"
 
-sed 's~ ~~g' < /tmp/data/input.txt > input_wo_spaces.txt
+PROBLEM="translate_zhru_full"
+MODEL="evolved_transformer"
+HPARAMS_SET="evolved_transformer_base"
+DECODE_HPARAMS="beam_size=1,alpha=0.6"
+
+mkdir -p "$OUTPUT_DIR"
+
+sed 's~ ~~g' < "$INPUT_FILE" > "$TMP_FILE"  # Fix undisclosed tokenization by removing spaces
 
 t2t-decoder \
-    --t2t_usr_dir /root/data \
-    --data_dir /root/data \
-    --problem translate_zhru_full \
-    --model evolved_transformer \
-    --hparams_set evolved_transformer_base \
-    --output_dir /root/data \
-    --decode_hparams="beam_size=1,alpha=0.6" \
-    --decode_from_file=input_wo_spaces.txt \
-    --decode_to_file=/opt/results/output.txt
+    --t2t_usr_dir "$DATA_DIR" \
+    --data_dir "$DATA_DIR" \
+    --problem "$PROBLEM" \
+    --model "$MODEL" \
+    --hparams_set "$HPARAMS_SET" \
+    --output_dir "$DATA_DIR" \
+    --decode_hparams "$DECODE_HPARAMS" \
+    --decode_from_file "$TMP_FILE" \
+    --decode_to_file "$OUTPUT_FILE"
