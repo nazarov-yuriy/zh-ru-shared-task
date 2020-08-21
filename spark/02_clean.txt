@@ -1,0 +1,10 @@
+from pyspark.sql.functions import *
+
+df = spark.read.load("hdfs://ryzen:9000/user/root/dataset/mt/ru-zh.parquet")
+
+df.filter(col("ru").rlike("[а-яёА-ЯЁ]{2}") & col("zh").rlike("\p{script=Han}"))\
+ .filter(col("ru").rlike("^[а-яёА-ЯЁ0-9a-zA-Z \,\.\:\-\&\;\(\)\?\!\/\%\*\"\'\[\]\@\+\#\=\\ №—–−‑«»“”▪ ● †]+$"))\
+ .filter(~col("ru").rlike("\{\\\\"))\
+ .filter(~col("zh").rlike("\{\\\\"))\
+ .select(["source", "zh","ru"]).distinct()\
+ .write.save("hdfs://ryzen:9000/user/root/dataset/mt/clean-ru-zh.parquet", format="parquet")

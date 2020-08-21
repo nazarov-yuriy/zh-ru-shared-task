@@ -1,0 +1,41 @@
+from pyspark.sql.functions import *
+
+df_unpc = spark.read.load("hdfs://ryzen:9000/user/root/dataset/opus/UNPC-v1.0/ru-zh.parquet"
+).withColumn("source", lit("unpc"))
+df_ted = spark.read.load("hdfs://ryzen:9000/user/root/dataset/opus/TED2013-v1.1/ru-zh.parquet"
+).select(["ru","zh"]).withColumn("source", lit("ted")).withColumn("line_num", lit(0))
+df_wmt_news = spark.read.load("hdfs://ryzen:9000/user/root/dataset/opus/WMT-News-v2019/ru-zh.parquet"
+).select(["ru","zh"]).withColumn("source", lit("wmt_news")).withColumn("line_num", lit(0))
+df_opensub = spark.read.load("hdfs://ryzen:9000/user/root/dataset/opus/OpenSubtitles-v2018/ru-zh_cn.parquet"
+).withColumnRenamed("zh_cn", "zh").withColumn("source", lit("opensub"))
+
+df_wiki_title = spark.read.load("hdfs://ryzen:9000/user/root/dataset/wikipedia-parallel-titles-corpora/ru-zh.parquet"
+).withColumn("source", lit("wiki_title"))
+df_wikidata_title = spark.read.load("hdfs://ryzen:9000/user/root/dataset/wikidata_titles/ru-zh.parquet"
+).withColumn("source", lit("wikidata_title"))
+df_news = spark.read.load("hdfs://ryzen:9000/user/root/dataset/news-commentary/ru-zh.parquet"
+).withColumn("source", lit("news"))
+
+
+# df_unpc.count()
+# df_ted.count()
+# df_wmt_news.count()
+# df_opensub.count()
+# df_wiki_title.count()
+# df_wikidata_title.count()
+# df_news.count()
+
+df = df_unpc.unionByName(
+    df_ted
+).unionByName(
+    df_wmt_news
+).unionByName(
+    df_opensub
+).unionByName(
+    df_wiki_title
+).unionByName(
+    df_wikidata_title
+).unionByName(
+    df_news
+)
+df.repartition(160).write.save("hdfs://ryzen:9000/user/root/dataset/mt/ru-zh.parquet", format="parquet")

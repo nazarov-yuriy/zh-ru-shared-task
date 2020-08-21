@@ -78,6 +78,14 @@ df_zh = text_zh.zipWithIndex().toDF(["zh","line_num"])
 df = df_en.join(df_zh, on=["line_num"])
 df.write.save("hdfs://ryzen:9000/user/root/dataset/opus/TED2013-v1.1/en-zh.parquet", format="parquet")
 
+df_en_ru = spark.read.load("hdfs://ryzen:9000/user/root/dataset/opus/TED2013-v1.1/en-ru.parquet")
+df_en_zh = spark.read.load("hdfs://ryzen:9000/user/root/dataset/opus/TED2013-v1.1/en-zh.parquet")
+df = df_en_ru.select(["en","ru"]).distinct().join(
+    df_en_zh.select(["en","zh"]).distinct(),
+    on=["en"]
+)
+df.repartition(8).write.save("hdfs://ryzen:9000/user/root/dataset/opus/TED2013-v1.1/ru-zh.parquet", format="parquet")
+
 ### WMT-News ###
 base_path = "hdfs://ryzen:9000/user/root/dataset/opus/"
 dataset_name = "WMT-News"
