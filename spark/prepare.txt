@@ -1,0 +1,168 @@
+mkdir UNPC-v1.0
+cd UNPC-v1.0
+wget -c http://opus.nlpl.eu/download.php?f=UNPC/v1.0/moses/ru-zh.txt.zip -O ru-zh.txt.zip
+
+unzip ru-zh.txt.zip
+JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 /opt/hadoop-3.2.1/bin/hdfs dfs -mkdir -p hdfs://ryzen:9000/user/root/dataset/opus/UNPC
+JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 /opt/hadoop-3.2.1/bin/hdfs dfs -put UNPC.ru-zh.{ru,zh} hdfs://ryzen:9000/user/root/dataset/opus/UNPC/
+cd ..
+
+mkdir TED2013-v1.1
+wget -c http://opus.nlpl.eu/download.php?f=TED2013/v1.1/moses/en-zh.txt.zip -O en-zh.txt.zip
+wget -c http://opus.nlpl.eu/download.php?f=TED2013/v1.1/moses/en-ru.txt.zip -O en-ru.txt.zip
+unzip en-zh.txt.zip
+rm README LICENSE
+unzip en-ru.txt.zip
+JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 /opt/hadoop-3.2.1/bin/hdfs dfs -mkdir -p hdfs://ryzen:9000/user/root/dataset/opus/TED2013-v1.1
+JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 /opt/hadoop-3.2.1/bin/hdfs dfs -put TED2013.*.{ru,en,zh} hdfs://ryzen:9000/user/root/dataset/opus/TED2013-v1.1/
+cd ..
+
+mkdir WMT-News-v2019
+wget -c http://opus.nlpl.eu/download.php?f=WMT-News/v2019/moses/en-zh.txt.zip -O en-zh.txt.zip
+wget -c http://opus.nlpl.eu/download.php?f=WMT-News/v2019/moses/en-ru.txt.zip -O en-ru.txt.zip
+unzip en-zh.txt.zip
+rm README LICENSE
+unzip en-ru.txt.zip
+JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 /opt/hadoop-3.2.1/bin/hdfs dfs -mkdir -p hdfs://ryzen:9000/user/root/dataset/opus/WMT-News-v2019
+JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 /opt/hadoop-3.2.1/bin/hdfs dfs -put WMT-News.*.{ru,en,zh} hdfs://ryzen:9000/user/root/dataset/opus/WMT-News-v2019/
+cd ..
+
+mkdir OpenSubtitles-v2018
+wget -c http://opus.nlpl.eu/download.php?f=OpenSubtitles/v2018/moses/ru-zh_cn.txt.zip -O ru-zh_cn.txt.zip
+unzip ru-zh_cn.txt.zip
+JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 /opt/hadoop-3.2.1/bin/hdfs dfs -mkdir -p hdfs://ryzen:9000/user/root/dataset/opus/OpenSubtitles-v2018
+JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 /opt/hadoop-3.2.1/bin/hdfs dfs -put OpenSubtitles.*.{ru,zh_cn} hdfs://ryzen:9000/user/root/dataset/opus/OpenSubtitles-v2018
+cd ..
+
+mkdir wikipedia-parallel-titles-corpora
+# download from dropbox
+JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 /opt/hadoop-3.2.1/bin/hdfs dfs -mkdir -p hdfs://ryzen:9000/user/root/dataset/wikipedia-parallel-titles-corpora
+JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 /opt/hadoop-3.2.1/bin/hdfs dfs -put wikititles-2014_ruzh.{ru,zh} hdfs://ryzen:9000/user/root/dataset/wikipedia-parallel-titles-corpora
+cd ..
+
+mkdir wikidata_titles
+# do magic
+JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 /opt/hadoop-3.2.1/bin/hdfs dfs -mkdir -p hdfs://ryzen:9000/user/root/dataset/wikidata_titles
+JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 /opt/hadoop-3.2.1/bin/hdfs dfs -put wikidata_titles.{ru,zh} hdfs://ryzen:9000/user/root/dataset/wikidata_titles
+cd ..
+
+mkdir news-commentary
+wget -c http://www.casmacat.eu/corpus/news-commentary/training.tgz -O aligned.tgz
+tar -xf aligned.tgz
+cat aligned/Russian-Chinese/Chinese/* > all.zh
+cat aligned/Russian-Chinese/Russian/* > all.ru
+JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 /opt/hadoop-3.2.1/bin/hdfs dfs -mkdir -p hdfs://ryzen:9000/user/root/dataset/news-commentary
+JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 /opt/hadoop-3.2.1/bin/hdfs dfs -put all.{ru,zh} hdfs://ryzen:9000/user/root/dataset/news-commentary
+cd ..
+
+### UNPC ###
+text_zh = sc.textFile("hdfs://ryzen:9000/user/root/dataset/opus/UNPC-v1.0/UNPC.ru-zh.zh")
+text_ru = sc.textFile("hdfs://ryzen:9000/user/root/dataset/opus/UNPC-v1.0/UNPC.ru-zh.ru")
+df_zh = text_zh.zipWithIndex().toDF(["zh","line_num"])
+df_ru = text_ru.zipWithIndex().toDF(["ru","line_num"])
+df = df_zh.join(df_ru, on=["line_num"])
+df.write.save("hdfs://ryzen:9000/user/root/dataset/opus/UNPC-v1.0/ru-zh.parquet", format="parquet")
+
+### TED ###
+text_en = sc.textFile("hdfs://ryzen:9000/user/root/dataset/opus/TED2013-v1.1/TED2013.en-ru.en")
+text_ru = sc.textFile("hdfs://ryzen:9000/user/root/dataset/opus/TED2013-v1.1/TED2013.en-ru.ru")
+df_en = text_en.zipWithIndex().toDF(["en","line_num"])
+df_ru = text_ru.zipWithIndex().toDF(["ru","line_num"])
+df = df_en.join(df_ru, on=["line_num"])
+df.write.save("hdfs://ryzen:9000/user/root/dataset/opus/TED2013-v1.1/en-ru.parquet", format="parquet")
+
+text_en = sc.textFile("hdfs://ryzen:9000/user/root/dataset/opus/TED2013-v1.1/TED2013.en-zh.en")
+text_zh = sc.textFile("hdfs://ryzen:9000/user/root/dataset/opus/TED2013-v1.1/TED2013.en-zh.zh")
+df_en = text_en.zipWithIndex().toDF(["en","line_num"])
+df_zh = text_zh.zipWithIndex().toDF(["zh","line_num"])
+df = df_en.join(df_zh, on=["line_num"])
+df.write.save("hdfs://ryzen:9000/user/root/dataset/opus/TED2013-v1.1/en-zh.parquet", format="parquet")
+
+### WMT-News ###
+base_path = "hdfs://ryzen:9000/user/root/dataset/opus/"
+dataset_name = "WMT-News"
+dataset_with_version = dataset_name + "-v2019"
+src_lang = "en"
+dst_lang = "zh"
+src_dst_lang = src_lang + "-" + dst_lang
+
+texts = {}
+for lang in [src_lang, dst_lang]:
+    texts[lang] = sc.textFile(base_path + dataset_with_version + "/" + dataset_name + "." + src_dst_lang + "." + lang)
+
+dfs = {}
+for lang in [src_lang, dst_lang]:
+    dfs[lang] = texts[lang].zipWithIndex().toDF([lang, "line_num"])
+
+df = dfs[src_lang].join(dfs[dst_lang], on=["line_num"])
+df.write.save(base_path + dataset_with_version + "/" + src_dst_lang + ".parquet", format="parquet")
+
+base_path = "hdfs://ryzen:9000/user/root/dataset/opus/"
+dataset_name = "WMT-News"
+dataset_with_version = dataset_name + "-v2019"
+src_lang = "en"
+dst_lang = "zh"
+src_dst_lang = src_lang + "-" + dst_lang
+
+texts = {}
+for lang in [src_lang, dst_lang]:
+    texts[lang] = sc.textFile(base_path + dataset_with_version + "/" + dataset_name + "." + src_dst_lang + "." + lang)
+
+dfs = {}
+for lang in [src_lang, dst_lang]:
+    dfs[lang] = texts[lang].zipWithIndex().toDF([lang, "line_num"])
+
+df = dfs[src_lang].join(dfs[dst_lang], on=["line_num"])
+df.write.save(base_path + dataset_with_version + "/" + src_dst_lang + ".parquet", format="parquet")
+
+df_en_ru = spark.read.load("hdfs://ryzen:9000/user/root/dataset/opus/WMT-News-v2019/en-ru.parquet")
+df_en_zh = spark.read.load("hdfs://ryzen:9000/user/root/dataset/opus/WMT-News-v2019/en-zh.parquet")
+df = df_en_ru.select(["en","ru"]).distinct().join(
+    df_en_zh.select(["en","zh"]).distinct(),
+    on=["en"]
+)
+df.repartition(1).write.save("hdfs://ryzen:9000/user/root/dataset/opus/WMT-News-v2019/ru-zh.parquet", format="parquet")
+
+
+### OpenSubtitles ###
+base_path = "hdfs://ryzen:9000/user/root/dataset/opus/"
+dataset_name = "OpenSubtitles"
+dataset_with_version = dataset_name + "-v2018"
+src_lang = "ru"
+dst_lang = "zh_cn"
+src_dst_lang = src_lang + "-" + dst_lang
+
+texts = {}
+for lang in [src_lang, dst_lang]:
+    texts[lang] = sc.textFile(base_path + dataset_with_version + "/" + dataset_name + "." + src_dst_lang + "." + lang)
+
+dfs = {}
+for lang in [src_lang, dst_lang]:
+    dfs[lang] = texts[lang].zipWithIndex().toDF([lang, "line_num"])
+
+df = dfs[src_lang].join(dfs[dst_lang], on=["line_num"])
+df.repartition(8).write.save(base_path + dataset_with_version + "/" + src_dst_lang + ".parquet", format="parquet")
+
+### wikipedia-parallel-titles-corpora ###
+text_zh = sc.textFile("hdfs://ryzen:9000/user/root/dataset/wikipedia-parallel-titles-corpora/wikititles-2014_ruzh.zh")
+text_ru = sc.textFile("hdfs://ryzen:9000/user/root/dataset/wikipedia-parallel-titles-corpora/wikititles-2014_ruzh.ru")
+df_zh = text_zh.zipWithIndex().toDF(["zh","line_num"])
+df_ru = text_ru.zipWithIndex().toDF(["ru","line_num"])
+df = df_zh.join(df_ru, on=["line_num"])
+df.repartition(8).write.save("hdfs://ryzen:9000/user/root/dataset/wikipedia-parallel-titles-corpora/ru-zh.parquet", format="parquet")
+
+### wikidata_titles ###
+text_zh = sc.textFile("hdfs://ryzen:9000/user/root/dataset/wikidata_titles/wikidata_titles.zh")
+text_ru = sc.textFile("hdfs://ryzen:9000/user/root/dataset/wikidata_titles/wikidata_titles.ru")
+df_zh = text_zh.zipWithIndex().toDF(["zh","line_num"])
+df_ru = text_ru.zipWithIndex().toDF(["ru","line_num"])
+df = df_zh.join(df_ru, on=["line_num"])
+df.repartition(8).write.save("hdfs://ryzen:9000/user/root/dataset/wikidata_titles/ru-zh.parquet", format="parquet")
+
+### news-commentary ###
+text_zh = sc.textFile("hdfs://ryzen:9000/user/root/dataset/news-commentary/all.zh")
+text_ru = sc.textFile("hdfs://ryzen:9000/user/root/dataset/news-commentary/all.ru")
+df_zh = text_zh.zipWithIndex().toDF(["zh","line_num"])
+df_ru = text_ru.zipWithIndex().toDF(["ru","line_num"])
+df = df_zh.join(df_ru, on=["line_num"])
+df.repartition(8).write.save("hdfs://ryzen:9000/user/root/dataset/news-commentary/ru-zh.parquet", format="parquet")
