@@ -1,0 +1,144 @@
+hdfs_base = "hdfs://ryzen:9000/user/root/dataset"
+
+### UNPC ###
+dataset_name = "UNPC"
+dataset_with_version = dataset_name + "-v1.0"
+src_lang = "ru"
+dst_lang = "zh"
+src_dst_lang = src_lang + "-" + dst_lang
+
+texts = {}
+for lang in [src_lang, dst_lang]:
+    texts[lang] = sc.textFile(hdfs_base + "/opus/" + dataset_with_version + "/" + dataset_name + "." + src_dst_lang + "." + lang)
+
+dfs = {}
+for lang in [src_lang, dst_lang]:
+    dfs[lang] = texts[lang].zipWithIndex().toDF([lang, "line_num"])
+
+df = dfs[src_lang].join(dfs[dst_lang], on=["line_num"])
+df.repartition(8).write.save(hdfs_base + "/opus/" + dataset_with_version + "/" + src_dst_lang + ".parquet", format="parquet")
+
+
+### TED ###
+dataset_name = "TED2013"
+dataset_with_version = dataset_name + "-v1.1"
+src_lang = "en"
+dst_lang = "ru"
+src_dst_lang = src_lang + "-" + dst_lang
+
+texts = {}
+for lang in [src_lang, dst_lang]:
+    texts[lang] = sc.textFile(hdfs_base + "/opus/" + dataset_with_version + "/" + dataset_name + "." + src_dst_lang + "." + lang)
+
+dfs = {}
+for lang in [src_lang, dst_lang]:
+    dfs[lang] = texts[lang].zipWithIndex().toDF([lang, "line_num"])
+
+df = dfs[src_lang].join(dfs[dst_lang], on=["line_num"])
+df.repartition(8).write.save(hdfs_base + "/opus/" + dataset_with_version + "/" + src_dst_lang + ".parquet", format="parquet")
+
+dataset_name = "TED2013"
+dataset_with_version = dataset_name + "-v1.1"
+src_lang = "en"
+dst_lang = "zh"
+src_dst_lang = src_lang + "-" + dst_lang
+
+texts = {}
+for lang in [src_lang, dst_lang]:
+    texts[lang] = sc.textFile(hdfs_base + "/opus/" + dataset_with_version + "/" + dataset_name + "." + src_dst_lang + "." + lang)
+
+dfs = {}
+for lang in [src_lang, dst_lang]:
+    dfs[lang] = texts[lang].zipWithIndex().toDF([lang, "line_num"])
+
+df = dfs[src_lang].join(dfs[dst_lang], on=["line_num"])
+df.repartition(8).write.save(hdfs_base + "/opus/" + dataset_with_version + "/" + src_dst_lang + ".parquet", format="parquet")
+
+df_en_ru = spark.read.load(hdfs_base + "/opus/TED2013-v1.1/en-ru.parquet")
+df_en_zh = spark.read.load(hdfs_base + "/opus/TED2013-v1.1/en-zh.parquet")
+df = df_en_ru.select(["en","ru"]).distinct().join(
+    df_en_zh.select(["en","zh"]).distinct(),
+    on=["en"]
+)
+df.repartition(8).write.save(hdfs_base + "/opus/TED2013-v1.1/ru-zh.parquet", format="parquet")
+
+
+### WMT-News ###
+dataset_name = "WMT-News"
+dataset_with_version = dataset_name + "-v2019"
+src_lang = "en"
+dst_lang = "zh"
+src_dst_lang = src_lang + "-" + dst_lang
+
+texts = {}
+for lang in [src_lang, dst_lang]:
+    texts[lang] = sc.textFile(hdfs_base + "/opus/" + dataset_with_version + "/" + dataset_name + "." + src_dst_lang + "." + lang)
+
+dfs = {}
+for lang in [src_lang, dst_lang]:
+    dfs[lang] = texts[lang].zipWithIndex().toDF([lang, "line_num"])
+
+df = dfs[src_lang].join(dfs[dst_lang], on=["line_num"])
+df.repartition(8).write.save(hdfs_base + "/opus/" + dataset_with_version + "/" + src_dst_lang + ".parquet", format="parquet")
+
+dataset_name = "WMT-News"
+dataset_with_version = dataset_name + "-v2019"
+src_lang = "en"
+dst_lang = "ru"
+src_dst_lang = src_lang + "-" + dst_lang
+
+texts = {}
+for lang in [src_lang, dst_lang]:
+    texts[lang] = sc.textFile(hdfs_base + "/opus/" + dataset_with_version + "/" + dataset_name + "." + src_dst_lang + "." + lang)
+
+dfs = {}
+for lang in [src_lang, dst_lang]:
+    dfs[lang] = texts[lang].zipWithIndex().toDF([lang, "line_num"])
+
+df = dfs[src_lang].join(dfs[dst_lang], on=["line_num"])
+df.repartition(8).write.save(hdfs_base + "/opus/" + dataset_with_version + "/" + src_dst_lang + ".parquet", format="parquet")
+
+df_en_ru = spark.read.load(hdfs_base + "/opus/WMT-News-v2019/en-ru.parquet")
+df_en_zh = spark.read.load(hdfs_base + "/opus/WMT-News-v2019/en-zh.parquet")
+df = df_en_ru.select(["en","ru"]).distinct().join(
+    df_en_zh.select(["en","zh"]).distinct(),
+    on=["en"]
+)
+df.repartition(8).write.save(hdfs_base + "/opus/WMT-News-v2019/ru-zh.parquet", format="parquet")
+
+
+### OpenSubtitles ###
+dataset_name = "OpenSubtitles"
+dataset_with_version = dataset_name + "-v2018"
+src_lang = "ru"
+dst_lang = "zh_cn"
+src_dst_lang = src_lang + "-" + dst_lang
+
+texts = {}
+for lang in [src_lang, dst_lang]:
+    texts[lang] = sc.textFile(hdfs_base + "/opus/" + dataset_with_version + "/" + dataset_name + "." + src_dst_lang + "." + lang)
+
+dfs = {}
+for lang in [src_lang, dst_lang]:
+    dfs[lang] = texts[lang].zipWithIndex().toDF([lang, "line_num"])
+
+df = dfs[src_lang].join(dfs[dst_lang], on=["line_num"])
+df.repartition(8).write.save(hdfs_base + "/opus/" + dataset_with_version + "/" + src_dst_lang + ".parquet", format="parquet")
+
+
+### wikipedia-parallel-titles-corpora ###
+text_zh = sc.textFile(hdfs_base + "/wikipedia-parallel-titles-corpora/wikititles-2014_ruzh.zh")
+text_ru = sc.textFile(hdfs_base + "/wikipedia-parallel-titles-corpora/wikititles-2014_ruzh.ru")
+df_zh = text_zh.zipWithIndex().toDF(["zh","line_num"])
+df_ru = text_ru.zipWithIndex().toDF(["ru","line_num"])
+df = df_zh.join(df_ru, on=["line_num"])
+df.repartition(8).write.save(hdfs_base + "/wikipedia-parallel-titles-corpora/ru-zh.parquet", format="parquet")
+
+
+### news-commentary ###
+text_zh = sc.textFile(hdfs_base + "/news-commentary/all.zh")
+text_ru = sc.textFile(hdfs_base + "/news-commentary/all.ru")
+df_zh = text_zh.zipWithIndex().toDF(["zh","line_num"])
+df_ru = text_ru.zipWithIndex().toDF(["ru","line_num"])
+df = df_zh.join(df_ru, on=["line_num"])
+df.repartition(8).write.save(hdfs_base + "/news-commentary/ru-zh.parquet", format="parquet")

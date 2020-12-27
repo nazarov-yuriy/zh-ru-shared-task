@@ -1,0 +1,24 @@
+from pyspark.sql.functions import *
+
+df = spark.read.load("hdfs://ryzen:9000/user/root/dataset/mt/clean-ru-zh.parquet")
+dfh = df.withColumn("hash", hash("zh","ru"))
+dfh.orderBy("hash").select(["ru"]).repartition(8).write.format("text")\
+.save("hdfs://ryzen:9000/user/root/dataset/mt/clean-ru-zh.txt.ru")
+
+df = spark.read.load("hdfs://ryzen:9000/user/root/dataset/mt/clean-ru-zh.parquet")
+dfh = df.withColumn("hash", hash("zh","ru"))
+dfh.orderBy("hash").select(["zh"]).repartition(8).write.format("text")\
+.save("hdfs://ryzen:9000/user/root/dataset/mt/clean-ru-zh.txt.zh")
+
+df = spark.read.load("hdfs://ryzen:9000/user/root/dataset/mt/clean-ru-zh.parquet")
+dfh = df.withColumn("hash", hash("zh","ru"))
+dfh.orderBy("hash").repartition(32).write.save("hdfs://ryzen:9000/user/root/dataset/mt/shuffled-ru-zh.parquet", format="parquet")
+
+# JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 /opt/hadoop-3.2.1/bin/hdfs dfs -get hdfs://ryzen:9000/user/root/dataset/mt/clean-ru-zh.txt.ru/part-* ru-zh.ru/
+# JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 /opt/hadoop-3.2.1/bin/hdfs dfs -get hdfs://ryzen:9000/user/root/dataset/mt/clean-ru-zh.txt.zh/part-* ru-zh.zh/
+# cat ru-zh.{ru,zh}/part-0000{0..3}* > ru-zh.txt.all_0_3
+
+import youtokentome as yttm
+
+yttm.BPE.train("ru-zh.txt.all_0_3", "model_ruzh_32k.yttm", 32768, 0.9999, pad_id=0, eos_id=1, unk_id=2, bos_id=3)
+yttm.BPE.train("ru-zh.txt.all_0_3", "model_ruzh_47k.yttm", 47000, 0.9999, pad_id=0, eos_id=1, unk_id=2, bos_id=3)
