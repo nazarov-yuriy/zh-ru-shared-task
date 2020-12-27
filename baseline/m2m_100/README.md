@@ -22,3 +22,16 @@ cat corpus_m2m_100.ru | sacrebleu -l zh-ru corpus_sorted.ru
 ```
 BLEU+case.mixed+lang.zh-ru+numrefs.1+smooth.exp+tok.13a+version.1.4.14 = 9.8 40.3/13.7/6.1/2.8 (BP = 1.000 ratio = 1.007 hyp_len = 122761 ref_len = 121901)
 ```
+```
+wget https://dl.fbaipublicfiles.com/m2m_100/418M_last_checkpoint.pt
+
+fairseq-generate data_bin_zh_ru --batch-size 32 --path 418M_last_checkpoint.pt-s zh -t ru --remove-bpe 'sentencepiece' --beam 5 --task translation_multi_simple_epoch --lang-pairs language_pairs_small_models.txt --decoder-langtok --encoder-langtok src --gen-subset test --fixed-dictionary model_dict.128k.txt --fp16 > gen_out
+
+cat gen_out | grep ^H | cut -f3- > corpus_m2m_100.ru
+cat gen_out | grep ^T | cut -f2- > corpus_sorted.ru
+cat corpus_m2m_100.ru | sacrebleu -l zh-ru corpus_sorted.ru
+```
+
+```
+BLEU+case.mixed+lang.zh-ru+numrefs.1+smooth.exp+tok.13a+version.1.4.14 = 8.0 37.2/11.4/4.7/2.0 (BP = 1.000 ratio = 1.032 hyp_len = 125855 ref_len = 121901)
+```
